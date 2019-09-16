@@ -1,0 +1,21 @@
+sudo: required
+language: generic
+services:
+  - docker
+
+before_install:
+  - docker build -t nis5294/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true nis5294/react-test npm run test
+
+after_success:
+  - docker build -t nis5294/multi-client ./client
+  - docker build -t nis5294/multi-nginx ./nginx
+  - docker build -t nis5294/multi-server ./server
+  - docker build -t nis5294/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push nis5294/multi-client
+  - docker push nis5294/multi-nginx
+  - docker push nis5294/multi-server
+  - docker push nis5294/multi-worker
